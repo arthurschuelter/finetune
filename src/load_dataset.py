@@ -72,3 +72,39 @@ def LoadTest():
     print()
     print(f'    ✅ Total training examples: {len(dataset):,}')
     print(f'    ✅ Sample:\n{dataset[0]["text"][:400]}')
+
+
+def formatting_func(example):
+    outputs = []
+
+    for messages in example["messages"]:
+        # Case: string
+        if isinstance(messages, str):
+            text = messages.strip()
+            if text:
+                outputs.append(text)
+            continue
+
+        # Case: list of dicts
+        text = ""
+        for msg in messages:
+            if isinstance(msg, dict):
+                role = msg.get("role", "")
+                content = msg.get("content", "").strip()
+
+                if not content:
+                    continue
+
+                if role == "user":
+                    text += f"User: {content}\n"
+                elif role == "assistant":
+                    text += f"Assistant: {content}\n"
+
+        if text.strip():
+            outputs.append(text.strip())
+
+    if not outputs:
+        return [""]  # or [" "] if needed
+
+    return outputs
+

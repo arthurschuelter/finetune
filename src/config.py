@@ -1,8 +1,6 @@
 import os
 
 # ── Models ────────────────────────────────────────────────────────────────────
-# BASE_MODEL = 'unsloth/tinyllama-bnb-4bit'
-
 # ✅ Qwen3-4B — best overall, native PT-BR, 128K context, has "thinking mode"
 # BASE_MODEL = 'unsloth/Qwen3-4B-bnb-4bit'
 # # Dynamic 2.0 variant (recommended):
@@ -33,4 +31,7 @@ EPOCHS      = 3     # Depends on eval_loss, increasing eval_loss leads to over-
 BATCH_SIZE  = 1     # Higher => Faster
 GRAD_ACCUM  = 8     # effective batch = 2 * 8 = 16
 LORA_R      = 16    # Maybe 64?
+
+DATASET_SIZE = 1000
+MERGED_DIR = './merged-model'
 # ───────────────────────────────────────────────────────────────────────────
