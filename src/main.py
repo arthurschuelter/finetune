@@ -47,6 +47,9 @@ import glob
 gguf_files = glob.glob(MODEL_FILENAME + '*.gguf')
 print(f'✅ GGUF file(s): {gguf_files}')
 
+from export import ExportModefile
+ExportModefile(MODEL_FILENAME, MERGED_DIR)
+
 # ## 🖥️ Step 7 — Import into Ollama (run on your local machine)
 # # cat > Modelfile <<'EOF'
 # # FROM ./code-sec-model-unsloth.Q4_K_M.gguf
