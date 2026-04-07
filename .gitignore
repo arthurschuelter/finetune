@@ -1,6 +1,11 @@
 # Folders
 qlora-output/
 unsloth_compiled_cache/
+merged-model/
+apereal-unsloth-Qwen3-4B-unsloth-bnb-4bit-v1/
+apereal-unsloth-Qwen3-4B-unsloth-bnb-4bit-v1_gguf/
+voip/
+data/dataset.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

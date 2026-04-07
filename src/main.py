@@ -8,16 +8,39 @@ print(f'VRAM            : {torch.cuda.get_device_properties(0).total_memory / 1e
 ## ⚙️ Step 2 — Configuration
 print('⚙️ Step 2 — Configuration')
 
-# ── Tweak these to your needs ──────────────────────────────────────────────
-BASE_MODEL = 'unsloth/tinyllama-bnb-4bit'  # correct name
-  # fits T4 free tier
-# Want a 7B? Use 'unsloth/mistral-7b-v0.3-bnb-4bit' but needs Colab Pro (A100)
+# ── Models ────────────────────────────────────────────────────────────────────
+# BASE_MODEL = 'unsloth/tinyllama-bnb-4bit'
+
+# ✅ Qwen3-4B — best overall, native PT-BR, 128K context, has "thinking mode"
+# BASE_MODEL = 'unsloth/Qwen3-4B-bnb-4bit'
+# # Dynamic 2.0 variant (recommended):
+BASE_MODEL = 'unsloth/Qwen3-4B-unsloth-bnb-4bit'
+
+# # ✅ Gemma 3 4B — multimodal, 140+ languages, 128K context
+# BASE_MODEL = 'unsloth/gemma-3-4b-it-bnb-4bit'
+# # Dynamic 2.0 variant:
+# BASE_MODEL = 'unsloth/gemma-3-4b-it-unsloth-bnb-4bit'
+
+# # ✅ Llama 3.2 3B — PT officially supported, very tuneable
+# BASE_MODEL = 'unsloth/Llama-3.2-3B-Instruct-bnb-4bit'
+# # Dynamic 2.0 variant:
+# BASE_MODEL = 'unsloth/Llama-3.2-3B-Instruct-unsloth-bnb-4bit'
+
+# # ⚠️  Amadeus-Verbo — NOT on Unsloth hub, load directly from HF
+# BASE_MODEL = 'nicholasKluge/Aira-2-portuguese-7B'   # older, well-known PT-BR option
+# # or the Amadeus family:
+# BASE_MODEL = 'dominguesm/Amadeus-Verbo-7B'
+
+MODEL_FILENAME = 'apereal-' + BASE_MODEL + '-v1'
+MODEL_FILENAME = MODEL_FILENAME.replace('/', '-')
+print('Model -> ', MODEL_FILENAME)
 OUTPUT_DIR  = './qlora-output'
 MAX_SEQ_LEN = 512
-EPOCHS      = 3
-BATCH_SIZE  = 2
-GRAD_ACCUM  = 8    # effective batch = 2 * 8 = 16
-LORA_R      = 16
+EPOCHS      = 3     # Depends on eval_loss, increasing eval_loss leads to over-
+                    # fitting
+BATCH_SIZE  = 1     # Higher => Faster
+GRAD_ACCUM  = 8     # effective batch = 2 * 8 = 16
+LORA_R      = 16    # Maybe 64?
 # ───────────────────────────────────────────────────────────────────────────
 print(f'    ✅ Config ready')
 
@@ -57,74 +80,58 @@ print(f'    ✅ Model ready')
 
 ## 🗄️ Step 4 — Load & Format Datasets
 print('🗄️ Step 4 — Load & Format Datasets')
-from datasets import load_dataset, concatenate_datasets
+from load_dataset import LoadAperealDataset, LoadTest
 
-def format_alpaca(row):
-    instruction = (row.get('instruction') or '').strip()
-    ctx         = (row.get('input') or '').strip()
-    output      = (row.get('output') or '').strip()
-    prompt = f'{instruction}\n{ctx}' if ctx else instruction
-    return {'text': f'<s>[INST] {prompt} [/INST] {output}</s>'}
+dataset = LoadAperealDataset()
+# dataset = LoadTest()
 
-def format_generic(row):
-    prompt = (row.get('instruction') or row.get('prompt') or row.get('question') or '').strip()
-    answer = (row.get('output') or row.get('response') or row.get('completion') or row.get('answer') or '').strip()
-    ctx    = (row.get('input') or row.get('context') or '').strip()
-    if ctx:
-        prompt = f'{prompt}\n{ctx}'
-    return {'text': f'<s>[INST] {prompt} [/INST] {answer}</s>'}
+def formatting_func(example):
+    outputs = []
 
-parts = []
+    for messages in example["messages"]:
+        # Case: string
+        if isinstance(messages, str):
+            text = messages.strip()
+            if text:
+                outputs.append(text)
+            continue
 
-# ── CodeAlpaca-20k ─────────────────────────────────────────────────────────
-print(f'    ✅ Loading CodeAlpaca...')
-coding = load_dataset('sahil2801/CodeAlpaca-20k', split='train')
-coding_fmt = coding.map(format_alpaca, remove_columns=coding.column_names)
-parts.append(coding_fmt)
-print(f'  CodeAlpaca: {len(coding_fmt):,} examples')
+        # Case: list of dicts
+        text = ""
+        for msg in messages:
+            if isinstance(msg, dict):
+                role = msg.get("role", "")
+                content = msg.get("content", "").strip()
 
-# ── CyberNative Cybersecurity ──────────────────────────────────────────────
-try:
-    print(f'    ✅ Loading CyberNative...')
-    vulns = load_dataset('CyberNative-AI/Cybersecurity_Specialized_Dataset', split='train')
-    print(f'    ✅ Columns: {vulns.column_names}')
-    vulns_fmt = vulns.map(format_generic, remove_columns=vulns.column_names)
-    parts.append(vulns_fmt)
-    print(f'    ✅ CyberNative: {len(vulns_fmt):,} examples')
-except Exception as e:
-    print(f'    ❌ Skipped CyberNative: {e}')
+                if not content:
+                    continue
 
-# ── CVE explanations ───────────────────────────────────────────────────────
-try:
-    print(f'    ✅ Loading CVE dataset...')
-    cve = load_dataset('detomo/cve-explain-openai', split='train')
-    print(f'    ✅ Columns: {cve.column_names}')
-    cve_fmt = cve.map(format_generic, remove_columns=cve.column_names)
-    parts.append(cve_fmt)
-    print(f'    ✅ CVE: {len(cve_fmt):,} examples')
-except Exception as e:
-    print(f'    ❌ Skipped CVE: {e}')
+                if role == "user":
+                    text += f"User: {content}\n"
+                elif role == "assistant":
+                    text += f"Assistant: {content}\n"
 
-# ── Combine & clean ────────────────────────────────────────────────────────
-dataset = concatenate_datasets(parts).shuffle(seed=42)
-dataset = dataset.filter(lambda x: len(x['text'].strip()) > 30)
+        if text.strip():
+            outputs.append(text.strip())
 
-print()
-print(f'    ✅ Total training examples: {len(dataset):,}')
-print(f'    ✅ Sample:\n{dataset[0]["text"][:400]}')
+    if not outputs:
+        return [""]  # or [" "] if needed
+
+    return outputs
 
 
 ## 🚀 Step 5 — Train
 print('🚀 Step 5 — Train')
 from trl import SFTTrainer, SFTConfig
 
-dataset = dataset.select(range(500))
+dataset = dataset.select(range(50))
 print(f'Using {len(dataset)} examples')
 
 trainer = SFTTrainer(
     model=model,
     train_dataset=dataset,
     processing_class=tokenizer,
+    formatting_func=formatting_func,
     args=SFTConfig(
         output_dir=OUTPUT_DIR,
         num_train_epochs=EPOCHS,
@@ -147,29 +154,31 @@ trainer = SFTTrainer(
 
 trainer.train()
 trainer.save_model(OUTPUT_DIR)
-
 tokenizer.save_pretrained(OUTPUT_DIR)
-print()
-print(f'✅ Training complete! Adapter saved to {OUTPUT_DIR}')
+print(f'\n✅ Training complete! Adapter saved to {OUTPUT_DIR}')
 
 
-# ## 🔗 Step 6 — Merge & Save (16-bit)
-# MERGED_DIR = './merged-model'
+## 🔗 Step 6 — Merge & Save (16-bit)
+MERGED_DIR = './merged-model'
 
-# # Unsloth handles the merge natively — no manual PeftModel needed
-# model.save_pretrained_merged(
-#     MERGED_DIR,
-#     tokenizer,
-#     save_method='merged_16bit',
-# )
-# print(f'✅ Merged model saved to {MERGED_DIR}')
+# Unsloth handles the merge natively — no manual PeftModel needed
+model.save_pretrained_merged(
+    MERGED_DIR,
+    tokenizer,
+    save_method='merged_16bit',
+)
+print(f'✅ Merged model saved to {MERGED_DIR}')
 
-# ## 🔄 Step 8 — Export to GGUF
-# model.save_pretrained_gguf(
-#     'code-sec-model',
-#     tokenizer,
-#     quantization_method='q4_k_m',
-# )
+## 🔄 Step 8 — Export to GGUF
+model.save_pretrained_gguf(
+    MODEL_FILENAME,
+    tokenizer,
+    quantization_method='q4_k_m',
+)
+
+import glob
+gguf_files = glob.glob(MODEL_FILENAME + '*.gguf')
+print(f'✅ GGUF file(s): {gguf_files}')
 
 # import glob
 # gguf_files = glob.glob('code-sec-model*.gguf')
