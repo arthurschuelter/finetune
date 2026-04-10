@@ -3,7 +3,7 @@ def main():
     # CheckGPU()
 
     print('Step 1 — Configuration')
-    from config import BASE_MODEL, OUTPUT_DIR, MAX_SEQ_LEN, EPOCHS, BATCH_SIZE, GRAD_ACCUM, LORA_R, MODEL_FILENAME, MERGED_DIR
+    from .config import BASE_MODEL, OUTPUT_DIR, MAX_SEQ_LEN, EPOCHS, BATCH_SIZE, GRAD_ACCUM, LORA_R, MODEL_FILENAME, MERGED_DIR
 
     print(f'    ✅ Base model: {BASE_MODEL}')
     print(f'    ✅ Output directory: {OUTPUT_DIR}')
@@ -15,16 +15,21 @@ def main():
     print(f'    ✅ Config ready')
 
     print('Step 2 — Load Model')
-    from model import ModelFactory
-    model, tokenizer = ModelFactory()
+    from .models.model_factory import ModelFactory
+    from .models.model import Model
+    _model: Model = ModelFactory(BASE_MODEL)
+    model, tokenizer = _model.model, _model.tokenizer
+
+    return
+
 
     print('Step 3 — Load & Format Datasets')
-    from load_dataset import LoadAperealDataset, LoadTest, formatting_func
+    from .load_dataset import LoadAperealDataset, LoadTest, formatting_func
 
     dataset = LoadAperealDataset()
 
     print('Step 4 — Train')
-    from train import trainModel
+    from .train import trainModel
     model, tokenizer = trainModel(model, dataset, tokenizer, formatting_func)
 
 

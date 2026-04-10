@@ -1,18 +1,11 @@
 import os
 
 # ── Models ────────────────────────────────────────────────────────────────────
-# Qwen3-4B 
-BASE_MODEL = 'unsloth/Qwen3-4B-unsloth-bnb-4bit'
-
-# # Gemma 3 4B
-# BASE_MODEL = 'unsloth/gemma-3-4b-it-bnb-4bit'
-# # Dynamic 2.0 variant:
-# BASE_MODEL = 'unsloth/gemma-3-4b-it-unsloth-bnb-4bit'
-
-# #  Llama 3.2 3B
-# BASE_MODEL = 'unsloth/Llama-3.2-3B-Instruct-bnb-4bit'
-# # Dynamic 2.0 variant:
-# BASE_MODEL = 'unsloth/Llama-3.2-3B-Instruct-unsloth-bnb-4bit'
+BASE_MODEL = 'Qwen3-4B'
+# BASE_MODEL = 'Gemma3-4B'
+# BASE_MODEL = 'Llama3.2-3B'
+# BASE_MODEL = 'Gemma3-4B-Dynamic'
+# BASE_MODEL = 'Llama3.2-3B-Dynamic'
 # ───────────────────────────────────────────────────────────────────────────
 
 MODEL_FILENAME = 'apereal-' + BASE_MODEL + '-v1'

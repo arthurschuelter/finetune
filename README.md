@@ -6,5 +6,7 @@ Finetune scripts with PEFT and LoRA.
 python3 -m venv. venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python3 src/main.py
+pip install -e .
+
+python3 run
 ```
