@@ -1,10 +1,10 @@
 from config import OUTPUT_DIR, MAX_SEQ_LEN, EPOCHS, BATCH_SIZE, GRAD_ACCUM, DATASET_SIZE
 from trl import SFTTrainer, SFTConfig
 
-
 def trainModel(model, dataset, tokenizer, formatting_func):
     dataset = dataset.select(range(DATASET_SIZE))
 
+    # TODO: O precisa ser parametrizado, ver com Pedro
     trainer = SFTTrainer(
         model=model,
         train_dataset=dataset,

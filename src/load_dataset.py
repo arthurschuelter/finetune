@@ -8,7 +8,6 @@ def LoadAperealDataset():
     with open(path) as f:
         dataset = json.load(f)
 
-    # dataset = dataset['train']
     dataset = Dataset.from_list(dataset["train"])
 
     print("Dataset succesfully loaded:")
@@ -72,7 +71,6 @@ def LoadTest():
     print()
     print(f'    ✅ Total training examples: {len(dataset):,}')
     print(f'    ✅ Sample:\n{dataset[0]["text"][:400]}')
-
 
 def formatting_func(example):
     outputs = []

@@ -37,7 +37,6 @@ for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
             s3.download_file(bucket_name, key, local_path)
             count += 1
             if count >= limit:
-                print("✅ Reached 500 files")
                 break
 
     if count >= limit:

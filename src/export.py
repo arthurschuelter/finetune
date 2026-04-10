@@ -1,4 +1,7 @@
 def ExportModefile(model_filename, file_path):
+
+    # TODO: This should be more flexible, with parameters and system instructions being passed in as arguments, but for now it's hardcoded for the specific use case of the ApeReal chatbot.
+    # TODO: Create a prompt module
     text_string = f'''
     
     FROM ./{model_filename}.gguf
