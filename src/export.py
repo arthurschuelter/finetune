@@ -18,6 +18,6 @@ def ExportModefile(model_filename, file_path):
     PARAMETER stop "\n\n\n"
     '''
 
-    with open(file_path + '/Modelfile', 'w') as f:
+    with open(file_path + "/Modelfile", "w") as f:
         f.write(text_string)
-    print('✅ Modelfile created successfully!')
+    print("✅ Modelfile created successfully!")

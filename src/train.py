@@ -1,5 +1,7 @@
-from config import OUTPUT_DIR, MAX_SEQ_LEN, EPOCHS, BATCH_SIZE, GRAD_ACCUM, DATASET_SIZE
-from trl import SFTTrainer, SFTConfig
+from trl import SFTConfig, SFTTrainer
+
+from .config import BATCH_SIZE, DATASET_SIZE, EPOCHS, GRAD_ACCUM, MAX_SEQ_LEN, OUTPUT_DIR
+
 
 def trainModel(model, dataset, tokenizer, formatting_func):
     dataset = dataset.select(range(DATASET_SIZE))
@@ -19,13 +21,13 @@ def trainModel(model, dataset, tokenizer, formatting_func):
             bf16=True,
             fp16=False,
             logging_steps=50,
-            save_strategy='epoch',
+            save_strategy="epoch",
             save_total_limit=2,
-            optim='adamw_8bit',
-            lr_scheduler_type='cosine',
+            optim="adamw_8bit",
+            lr_scheduler_type="cosine",
             warmup_steps=100,
-            report_to='none',
-            dataset_text_field='text',
+            report_to="none",
+            dataset_text_field="text",
             max_seq_length=MAX_SEQ_LEN,
         ),
     )
@@ -33,6 +35,6 @@ def trainModel(model, dataset, tokenizer, formatting_func):
     trainer.train()
     trainer.save_model(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
-    print(f'\n✅ Training complete! Adapter saved to {OUTPUT_DIR}')
+    print(f"\n✅ Training complete! Adapter saved to {OUTPUT_DIR}")
 
     return model, tokenizer
