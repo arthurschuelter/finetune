@@ -2,6 +2,9 @@ MODEL_REGISTRY: dict[str, dict] = {
     "Qwen3-4B": {
         "path": "unsloth/Qwen3-4B-unsloth-bnb-4bit",
     },
+    "Qwen3-8B": {
+        "path": "unsloth/Qwen3-8B-unsloth-bnb-4bit",
+    },
     "Gemma3-4B": {
         "path": "unsloth/gemma-3-4b-it-bnb-4bit",
     },

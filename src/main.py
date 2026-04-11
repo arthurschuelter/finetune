@@ -12,6 +12,7 @@ def main():
         MAX_SEQ_LEN,
         MERGED_DIR,
         MODEL_FILENAME,
+        MODEL_PROMPT,
         OUTPUT_DIR,
     )
 
@@ -61,9 +62,17 @@ def main():
     gguf_files = glob.glob(MODEL_FILENAME + "*.gguf")
     print(f"✅ GGUF file(s): {gguf_files}")
 
-    from export import ExportModefile
+    from .prompt.modelfile import ModelfileConfig
+    _modelfile_config = ModelfileConfig(
+        system_prompt=MODEL_PROMPT,
+        model_filename=MODEL_FILENAME,
+        model_dir=MERGED_DIR
+    )
 
-    ExportModefile(MODEL_FILENAME, MERGED_DIR)
+    _modelfile_config.export()
+
+    # from .export import ExportModefile
+    # ExportModefile(MODEL_FILENAME, MERGED_DIR)
 
 
 if __name__ == "__main__":
